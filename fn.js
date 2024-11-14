@@ -1,4 +1,10 @@
+// tracker.js
 (async function() {
+  // Direct de script URL opslaan voordat we iets anders doen
+  const scriptSrc = document.currentScript?.src;
+  console.log('Saved script URL:', scriptSrc);
+
+  // Laad ThumbmarkJS
   await import('https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js');
   ThumbmarkJS.setOption('exclude', ['audio.sampleHash', 'canvas.commonImageDataHash']);
 
@@ -24,10 +30,25 @@
     }
   }
 
+  function getUserId(scriptSrc) {
+    if (!scriptSrc) {
+      console.log('Script URL not found');
+      return null;
+    }
+
+    try {
+      const url = new URL(scriptSrc);
+      const userId = new URLSearchParams(url.search).get('id');
+      console.log('Found user ID:', userId);
+      return userId;
+    } catch (error) {
+      console.error('Error parsing URL:', error);
+      return null;
+    }
+  }
+
   async function initializeTracker() {
-    const scriptURL = document.currentScript?.src || '';
-    const urlParams = new URLSearchParams(new URL(scriptURL).search);
-    const userId = urlParams.get('id');
+    const userId = getUserId(scriptSrc);
     
     if (!userId) {
       console.error('Tracking ID niet gevonden');
@@ -69,5 +90,6 @@
     }
   }
 
+  // Start de tracker
   initializeTracker();
 })();
