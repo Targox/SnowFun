@@ -92,4 +92,12 @@
 
   // Start de tracker
   initializeTracker();
+
+  // Voeg een event listener toe om veranderingen in de URL-hash te detecteren
+window.addEventListener('hashchange', () => {
+  console.log("URL-hash gewijzigd:", window.location.href);
+  
+  // Opnieuw de tracker starten met de bijgewerkte URL
+  initializeTracker();
+});
 })();
