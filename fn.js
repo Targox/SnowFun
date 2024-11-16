@@ -14,7 +14,9 @@
     let visitorID = document.cookie.replace(/(?:(?:^|.*;\s*)visitorID\s*=\s*([^;]*).*$)|^.*$/, "$1");
     if (!visitorID) {
       visitorID = 'fn_' + Math.random().toString(36).substr(2, 9);
-      document.cookie = "visitorID=" + visitorID + "; path=/";
+      const expires = new Date();
+      expires.setMonth(expires.getMonth() + 13);
+      document.cookie = "visitorID=" + visitorID + "; path=/; expires=" + expires.toUTCString();
     }
     return visitorID;
   }
