@@ -1,23 +1,28 @@
-// tracker.js
 (async function() {
   // Direct de script URL opslaan voordat we iets anders doen
   const scriptSrc = document.currentScript?.src;
   console.log('Saved script URL:', scriptSrc);
-
+  
   // Laad ThumbmarkJS
   await import('https://cdn.jsdelivr.net/npm/@thumbmarkjs/thumbmarkjs/dist/thumbmark.umd.js');
   ThumbmarkJS.setOption('exclude', ['audio.sampleHash', 'canvas.commonImageDataHash']);
-
   const xanoEndpoint = 'https://x8ki-letl-twmt.n7.xano.io/api:eLhWEdSz/visit';
   
   function getVisitorID() {
     let visitorID = document.cookie.replace(/(?:(?:^|.*;\s*)visitorID\s*=\s*([^;]*).*$)|^.*$/, "$1");
+    
+    // Altijd de vervaldatum verlengen, of we nu een nieuwe cookie maken of een bestaande hebben
+    const expires = new Date();
+    expires.setMonth(expires.getMonth() + 13); // Cookie blijft 13 maanden geldig
+    
     if (!visitorID) {
+      // Als de visitorID cookie niet bestaat, maak deze dan aan
       visitorID = 'fn_' + Math.random().toString(36).substr(2, 9);
-      const expires = new Date();
-      expires.setMonth(expires.getMonth() + 13);
-      document.cookie = "visitorID=" + visitorID + "; path=/; expires=" + expires.toUTCString();
     }
+    
+    // Zet of vernieuw de cookie met nieuwe vervaldatum
+    document.cookie = "visitorID=" + visitorID + "; path=/; expires=" + expires.toUTCString();
+    
     return visitorID;
   }
   
@@ -37,7 +42,6 @@
       console.log('Script URL not found');
       return null;
     }
-
     try {
       const url = new URL(scriptSrc);
       const userId = new URLSearchParams(url.search).get('id');
@@ -62,9 +66,8 @@
         ThumbmarkJS.getFingerprint(),
         fetchIPAddress()
       ]);
-
-      const visitorID = getVisitorID();
-
+      const visitorID = getVisitorID(); // Dit zal nu altijd de cookie vernieuwen
+      
       if (ipAddress) {
         const payload = {
           visitor_id: visitorID,
@@ -96,10 +99,9 @@
   initializeTracker();
 
   // Voeg een event listener toe om veranderingen in de URL-hash te detecteren
-window.addEventListener('hashchange', () => {
-  console.log("URL-hash gewijzigd:", window.location.href);
-  
-  // Opnieuw de tracker starten met de bijgewerkte URL
-  initializeTracker();
-});
+  window.addEventListener('hashchange', () => {
+    console.log("URL-hash gewijzigd:", window.location.href);
+    // Opnieuw de tracker starten met de bijgewerkte URL
+    initializeTracker();
+  });
 })();
