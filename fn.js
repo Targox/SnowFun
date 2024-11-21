@@ -1,5 +1,4 @@
 (async function() {
-  // Direct de script URL opslaan voordat we iets anders doen
   const scriptSrc = document.currentScript?.src;
   console.log('Saved script URL:', scriptSrc);
   
@@ -10,19 +9,13 @@
   
   function getVisitorID() {
     let visitorID = document.cookie.replace(/(?:(?:^|.*;\s*)visitorID\s*=\s*([^;]*).*$)|^.*$/, "$1");
-    
-    // Altijd de vervaldatum verlengen, of we nu een nieuwe cookie maken of een bestaande hebben
     const expires = new Date();
-    expires.setMonth(expires.getMonth() + 13); // Cookie blijft 13 maanden geldig
+    expires.setMonth(expires.getMonth() + 13);
     
     if (!visitorID) {
-      // Als de visitorID cookie niet bestaat, maak deze dan aan
       visitorID = 'fn_' + Math.random().toString(36).substr(2, 9);
     }
-    
-    // Zet of vernieuw de cookie met nieuwe vervaldatum
     document.cookie = "visitorID=" + visitorID + "; path=/; expires=" + expires.toUTCString();
-    
     return visitorID;
   }
   
@@ -53,7 +46,7 @@
     }
   }
 
-  async function initializeTracker() {
+  async function initializeTracker(email = null) {
     const userId = getUserId(scriptSrc);
     
     if (!userId) {
@@ -66,7 +59,7 @@
         ThumbmarkJS.getFingerprint(),
         fetchIPAddress()
       ]);
-      const visitorID = getVisitorID(); // Dit zal nu altijd de cookie vernieuwen
+      const visitorID = getVisitorID();
       
       if (ipAddress) {
         const payload = {
@@ -76,7 +69,8 @@
           referrer: document.referrer,
           userAgent: navigator.userAgent,
           url: window.location.href,
-          user_id: parseInt(userId)
+          user_id: parseInt(userId),
+          email: email // Voeg het e-mailadres toe aan de payload
         };
 
         const response = await fetch(xanoEndpoint, {
@@ -95,13 +89,23 @@
     }
   }
 
-  // Start de tracker
+  // Voeg een event listener toe aan het e-mailveld
+  const emailField = document.querySelector('input[type="email"]');
+  
+  if (emailField) {
+    // Eventlistener voor het verlaten van het veld
+    emailField.addEventListener('blur', () => {
+      if (emailField.value) {
+        initializeTracker(emailField.value);
+      }
+    });
+  }
+
+  // Start de tracker zonder e-mailadres
   initializeTracker();
 
-  // Voeg een event listener toe om veranderingen in de URL-hash te detecteren
   window.addEventListener('hashchange', () => {
     console.log("URL-hash gewijzigd:", window.location.href);
-    // Opnieuw de tracker starten met de bijgewerkte URL
     initializeTracker();
   });
 })();
